@@ -1,8 +1,8 @@
 ---
 name: research-dreaming
-description: Run an evidence-bounded research pass with incremental project-evidence review, focused literature, testable hypotheses, and reproducible handoff artifacts.
+description: Run an evidence-bounded research pass with incremental project-evidence review, optional caller-supplied literature, testable hypotheses, and reproducible handoff artifacts.
 metadata:
-  version: 0.3.0
+  version: 0.3.1
   scope: cross-agent research workflow
   incremental-evidence: true
   literature-synthesis: true
@@ -10,7 +10,7 @@ metadata:
 
 # Research dreaming
 
-Use this skill for a bounded research pass across project records and literature. Preserve the incremental review mechanics from `agent-dream`: orient, gather, compare, and hand off. The workflow is model-neutral and does not require a runtime experiment when evidence cannot change a decision.
+Use this skill for a bounded research pass across project records, with optional literature synthesis. Preserve the incremental review mechanics from `agent-dream`: orient, gather, compare, and hand off. The workflow is model-neutral and does not require a runtime experiment when evidence cannot change a decision.
 
 ## Inputs and boundaries
 
@@ -34,7 +34,11 @@ Use the latest successful checkpoint named in the project handoff when its `proj
 
 Resolve local paths relative to `catalog.json` or supply absolute paths. Set `complete_inventory` to `true` after listing all in-scope sources, including unchanged items.
 
-For local corpora, preserve section/page (or equivalent) provenance in every evidence record. Read indexes and abstracts first, then drill into relevant sections. Use connections and contradictions across papers to help select a question when suitable. External lookup is allowed only within the caller's scope; never send private project names, paths, identifiers, unpublished values, or credentials.
+## Optional literature mode
+
+Activate literature synthesis only when the caller explicitly supplies papers, paper links, or a scoped literature corpus for this run. Otherwise, use project evidence and skip corpus discovery, paper search, and literature synthesis. An omitted corpus is a valid default.
+
+Include in-scope literature in the catalog. Enumerate files in a supplied directory individually and record unreadable sources as unresolved. Read supplied material for ideas, disagreements, and boundary conditions. A single paper can inform a hypothesis alongside project evidence. Cite pages or sections for every literature claim and record what each used paper contributes. Searching for additional papers requires separate explicit authorization. For authorized searches, use generic methodological queries, record them, and keep private project details local.
 
 ## Incremental evidence prepass
 
@@ -51,7 +55,7 @@ If the verified delta has no changes and there is no requested topic or manual o
 ## Decision rule and workflow
 
 1. Build an evidence map from relevant delta sources with identity, status, date, revision, exact claim, and section/page provenance. Separate observed, inferred, proposed, and unresolved claims.
-2. Search the local corpus first. Record source and provenance, along with the contribution each paper makes. Prefer primary sources. Use cross-paper agreement, connections, and contradictions to select or sharpen the question. When external research is in scope, use generic methodological queries and record them.
+2. If literature mode is active, use connections in the supplied material to generate or refine a hypothesis.
 3. Choose one impactful, falsifiable question. Name the interpretation or action it could change and why it matters.
 4. Write a hypothesis and competing explanation, then define inputs, split/test unit, metric, uncertainty, falsifier, decision threshold, and the exact evidence needed.
 5. Decide whether to run a check: run only the smallest authorized, bounded check when (a) real, frozen, relevant evidence is accessible and (b) plausible differing outcomes would change the named interpretation or action. Do not force a runtime for a plan-only case.

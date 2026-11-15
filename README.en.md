@@ -1,6 +1,6 @@
 # 三省 · Sanxing
 
-Sanxing is a research-dreaming Skill for research agents. It revisits original evidence, reads a focused local literature corpus, turns connections into falsifiable hypotheses, and runs the smallest check only when its result could change a stated judgment.
+Sanxing is a research-dreaming Skill for research agents. It revisits original evidence and adds literature-driven ideation only when the caller supplies papers or an explicitly scoped paper corpus. It runs the smallest check only when its result could change a stated judgment.
 
 [中文版 README](README.md)
 
@@ -12,9 +12,9 @@ The name comes from Zengzi’s words in the first book of the *Analects*, 「吾
 
    Start from newly available original records. Check prior memories, summaries, and status claims. Keep the source, revision, and page or section anchor for important claims.
 
-2. **What new hypothesis emerges when papers are read together?**
+2. **When papers are supplied, what new hypothesis emerges?**
 
-   Search the local literature corpus first. Look for connections, tensions, and boundary conditions across papers. Turn a connection into a hypothesis with competing predictions and explicit inputs.
+   Read papers only when the caller supplies papers, paper links, or a clearly scoped literature directory. Look for connections, tensions, and boundary conditions in those inputs. Turn a connection into a hypothesis with competing predictions and explicit inputs. Skip literature ideation when no literature is supplied.
 
 3. **What result would change my mind?**
 
@@ -22,31 +22,32 @@ The name comes from Zengzi’s words in the first book of the *Analects*, 「吾
 
 ## Scope
 
-Sanxing fits projects with accumulated memory and literature where earlier summaries may be stale or cross-paper connections have not yet become testable questions. A pass can stop at evidence review and protocol design, or run a small reproducible check when frozen data already exists.
+Sanxing is for projects that need to revisit earlier summaries and decide what to test next. A pass can run a small reproducible check when frozen data already exists.
 
-Each caller provides a project identifier, scope, approved read-only project records, local literature directory, independent output directory, and execution budget. Sanxing is model-, memory-product-, and language-agnostic. It does not train production models, rewrite formal project memory, access sealed test sets, or relabel an old summary as a new experiment.
+Each caller provides a project identifier, scope, approved read-only project records, independent output directory, and execution budget. Sanxing is model-, memory-product-, and language-agnostic. It does not train production models, rewrite formal project memory, access sealed test sets, or relabel an old summary as a new experiment.
 
 ## Prompt template
 
 Put the repository somewhere your agent can read and give it the path to `SKILL.md`. Fill in the fields below and send the prompt to the agent. An example budget is 30 minutes for a single local CPU check. Use `none` for the previous checkpoint on your first pass.
 
 ```text
-First read <path_to_repo>/SKILL.md and follow research-dreaming 0.3.0.
+First read <path_to_repo>/SKILL.md and follow research-dreaming 0.3.1.
 The project is <project> and the scope is <scope>.
 Approved read-only project evidence is <approved_project_records>.
-The local literature directory is <local_papers>.
 Write results to the independent directory <output_dir>.
 The execution budget is <budget>.
 The previous successful checkpoint is <previous_checkpoint_or_none>.
 
 First build a complete catalog.json for the scope and run the incremental evidence scan.
-Choose one question from the original project evidence and local literature that could change a project judgment.
-Record page or section anchors, competing predictions, inputs, split or replication unit, metric, uncertainty, falsifier, and threshold.
+Choose one question from the original project evidence that could change a project judgment.
+Record evidence anchors, competing predictions, inputs, split or replication unit, metric, uncertainty, falsifier, and threshold.
 Run the smallest check only when credible frozen inputs exist and the result would change the named judgment.
 Otherwise write PLAN_ONLY and name the missing inputs and next access required.
 Write all reports, commands, hashes, and handoff material to the independent directory.
 Do not train production models, access sealed test data, or update formal memory.
 ```
+
+To enable literature ideation, append “Use <paper files, paper links, or a scoped paper directory> to develop hypotheses for this pass, and cite pages or sections.” Searching for additional papers requires separate authorization.
 
 The caller may ask the agent to choose the topic. Do not carry a previous agent's hypothesis into a new pass as its question.
 
@@ -54,7 +55,7 @@ The caller may ask the agent to choose the topic. Do not carry a previous agent'
 
 1. Build `catalog.json` with stable IDs and a complete inventory for the agreed scope.
 2. Run the incremental scan and inspect added, changed, removed, and unchanged sources.
-3. Read original evidence from added and changed sources, then inspect relevant paper pages or sections.
+3. Read original evidence from added and changed sources. Inspect paper pages or sections only when literature inputs were supplied.
 4. Choose one falsifiable question that could affect a named judgment. Separate observed, inferred, proposed, and unresolved claims.
 5. Define competing predictions, inputs, split or replication unit, metric, uncertainty, falsifier, and threshold.
 6. Decide whether to run the minimal check. If frozen evidence is missing, deliver the protocol with `PLAN_ONLY`.
@@ -71,11 +72,12 @@ Let the agent handle this step or run the bundled Python script yourself. This e
   "scope": "notes-and-priority-evidence",
   "complete_inventory": true,
   "sources": [
-    {"id": "project-index", "path": "inputs/MEMORY.md"},
-    {"id": "paper-001", "path": "papers/example.pdf"}
+    {"id": "project-index", "path": "inputs/MEMORY.md"}
   ]
 }
 ```
+
+For a supplied directory, enumerate the in-scope papers individually in `sources`. Each `path` points to a file.
 
 Run the first scan from the repository root. The code blocks use Bash. In Windows PowerShell 5.1, use `| Set-Content -Encoding utf8 <output-path>` to write the JSON.
 
@@ -104,7 +106,7 @@ A completed protocol without an executed check uses `status: COMPLETED` and `ver
 
 A successful pass usually contains the following files.
 
-- `DREAM_REPORT.md` for the question, evidence map, paper anchors, competing predictions, and decision rule
+- `DREAM_REPORT.md` for the question, evidence map, competing predictions, decision rule, and page or section anchors for any papers used
 - `RESULT.json` for machine-readable status, scope, hashes, and next steps
 - `RUN.md` for executed and planned commands
 - `DELTA.json` for the incremental scan
@@ -115,11 +117,11 @@ Keep the run in an independent directory. Update formal project memory only afte
 
 ## Example
 
-Suppose the question is whether a model component yields at least a 0.5% relative error reduction in two cell contexts. The agent derives weights from the training partition, then compares two capacity-matched models on the same targets and frozen held-out split. If per-target predictions and response data are missing, the agent must not call a historical summary a new result. It should write `PLAN_ONLY` and list the required predictions, labels, split, and weight files.
+Suppose the question is whether a model component yields at least a 0.5% relative error reduction in two cell contexts. Even without papers, the agent can define the question from project evidence and compare two capacity-matched models on the same targets and frozen held-out split. When the caller supplies papers, the agent can use their evaluation methods as traceable hypothesis inputs. If per-target predictions and response data are missing, the agent must not call a historical summary a new result. It should write `PLAN_ONLY` and list the required predictions, labels, split, and weight files.
 
 ## Included files
 
-- [SKILL.md](SKILL.md) research workflow, version 0.3.0
+- [SKILL.md](SKILL.md) research workflow, version 0.3.1
 - [scripts/evidence_delta.py](scripts/evidence_delta.py) incremental evidence scan and checkpoint utility
 - [README.md](README.md) Chinese documentation
 
